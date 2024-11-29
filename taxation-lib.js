@@ -42,7 +42,9 @@ function calculateIR(profit, familyQuotient = 1) {
       tax += taxForBracket;
 
       taxBreakdown.push({
-        range: `${min} - ${max === Infinity ? "∞" : max * familyQuotient}`,
+        range: `${min * familyQuotient} - ${
+          max === Infinity ? "∞" : max * familyQuotient
+        }`,
         taxableAmount: (taxableAmount * familyQuotient).toFixed(0),
         taxForBracket: (taxForBracket * familyQuotient).toFixed(0),
       });
