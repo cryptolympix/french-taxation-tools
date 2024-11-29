@@ -3,7 +3,7 @@ const DECOTE_APPLICATION_THRESHOLD = [1929, 3191]; // The threshold for applying
 const DECOTE_MAX = [873, 1444]; // The max decote amount for 1 and 2 parts
 const DECOTE_PERCENTAGE = 0.4525; // The percentage of the decote
 
-function calculteDecote(tax, familyQuotient) {
+function calculteDecote(tax, familyQuotient = 1) {
   const decoteThreshold =
     familyQuotient == 1
       ? DECOTE_APPLICATION_THRESHOLD[0]
@@ -15,6 +15,8 @@ function calculteDecote(tax, familyQuotient) {
     let decote = decoteMax - tax * DECOTE_PERCENTAGE;
     if (tax - decote > 0) {
       return decoteMax - tax * DECOTE_PERCENTAGE;
+    } else {
+      return tax;
     }
   }
   return 0;
