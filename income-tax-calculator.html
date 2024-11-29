@@ -214,14 +214,13 @@
         }
 
         // Calcul with quotient familial
-        const { taxBreakdown, tax } = calculateIR(income / familyQuotient);
-        const totalTax = tax * familyQuotient;
-        const decote = calculteDecote(totalTax, familyQuotient);
-        const totalTaxWithDecote = totalTax - decote;
+        const { tax, taxBreakdown } = calculateIR(income, familyQuotient);
+        const decote = calculteDecote(tax, familyQuotient);
+        const taxWithDecote = tax - decote;
 
         return {
-          totalTax,
-          totalTaxWithDecote,
+          tax,
+          taxWithDecote,
           taxBreakdown,
           decote,
         };
@@ -233,8 +232,10 @@
           document.getElementById("familyQuotient").value
         );
 
-        const { totalTax, totalTaxWithDecote, taxBreakdown, decote } =
-          calculateTax(income, familyQuotient);
+        const { tax, taxWithDecote, taxBreakdown, decote } = calculateTax(
+          income,
+          familyQuotient
+        );
 
         // ============ HTML elements ============ //
 
@@ -249,7 +250,7 @@
 
         // Update the result text
         resultText.innerHTML = `
-          <strong>Impôt sur le revenu :</strong> ${totalTaxWithDecote.toFixed(
+          <strong>Impôt sur le revenu :</strong> ${taxWithDecote.toFixed(
             0
           )} €<br />Décôte : ${decote.toFixed(0)} €
         `;

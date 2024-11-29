@@ -1,3 +1,27 @@
+// https://www.economie.gouv.fr/particuliers/decote-impot-revenu
+const DECOTE_APPLICATION_THRESHOLD = [1929, 3191]; // The threshold for applying decote for 1 and 2 parts
+const DECOTE_MAX = [873, 1444]; // The max decote amount for 1 and 2 parts
+const DECOTE_PERCENTAGE = 0.4525; // The percentage of the decote
+
+function calculteDecote(tax, familyQuotient) {
+  const decoteThreshold =
+    familyQuotient == 1
+      ? DECOTE_APPLICATION_THRESHOLD[0]
+      : DECOTE_APPLICATION_THRESHOLD[1];
+
+  const decoteMax = familyQuotient == 1 ? DECOTE_MAX[0] : DECOTE_MAX[1];
+
+  if (tax <= decoteThreshold) {
+    let decote = decoteMax - tax * DECOTE_PERCENTAGE;
+    if (tax - decote > 0) {
+      return decoteMax - tax * DECOTE_PERCENTAGE;
+    }
+  }
+  return 0;
+}
+
+// =====================================================================================================================
+
 const TAX_RATES_IR = [
   { min: 0, max: 11294, rate: 0 },
   { min: 11294, max: 28797, rate: 0.11 },
@@ -6,28 +30,26 @@ const TAX_RATES_IR = [
   { min: 177106, max: Infinity, rate: 0.45 },
 ];
 
-function calculateIR(profit) {
+function calculateIR(profit, familyQuotient = 1) {
+  const incomePerPart = profit / familyQuotient;
   const taxBreakdown = [];
   let tax = 0;
 
-  for (const bracket of TAX_RATES_IR) {
-    if (profit > bracket.min) {
-      const taxableAmount = Math.min(
-        bracket.max - bracket.min,
-        profit - bracket.min
-      );
-      const taxForBracket = taxableAmount * bracket.rate;
+  for (const { min, max, rate } of TAX_RATES_IR) {
+    if (incomePerPart > min) {
+      const taxableAmount = Math.min(max - min, incomePerPart - min);
+      const taxForBracket = taxableAmount * rate;
       tax += taxForBracket;
 
       taxBreakdown.push({
-        range: `${bracket.min} - ${
-          bracket.max === Infinity ? "∞" : bracket.max
-        }`,
-        taxableAmount: taxableAmount.toFixed(0),
-        taxForBracket: taxForBracket.toFixed(0),
+        range: `${min} - ${max === Infinity ? "∞" : max * familyQuotient}`,
+        taxableAmount: (taxableAmount * familyQuotient).toFixed(0),
+        taxForBracket: (taxForBracket * familyQuotient).toFixed(0),
       });
     }
   }
+
+  tax = tax * familyQuotient;
 
   return { tax, taxBreakdown };
 }
@@ -59,28 +81,6 @@ function calculateIS(profit) {
 }
 
 // =====================================================================================================================
-
-// https://www.economie.gouv.fr/particuliers/decote-impot-revenu
-const DECOTE_APPLICATION_THRESHOLD = [1929, 3191]; // The threshold for applying decote for 1 and 2 parts
-const DECOTE_MAX = [873, 1444]; // The max decote amount for 1 and 2 parts
-const DECOTE_PERCENTAGE = 0.4525; // The percentage of the decote
-
-function calculteDecote(tax, familyQuotient) {
-  const decoteThreshold =
-    familyQuotient == 1
-      ? DECOTE_APPLICATION_THRESHOLD[0]
-      : DECOTE_APPLICATION_THRESHOLD[1];
-
-  const decoteMax = familyQuotient == 1 ? DECOTE_MAX[0] : DECOTE_MAX[1];
-
-  if (tax <= decoteThreshold) {
-    let decote = decoteMax - tax * DECOTE_PERCENTAGE;
-    if (tax - decote > 0) {
-      return decoteMax - tax * DECOTE_PERCENTAGE;
-    }
-  }
-  return 0;
-}
 
 // Charges sociales pour les travailleurs indépendants (TNS)
 const SOCIAL_CONTRIBUTION_RATE_TNS = 0.45; // https://entreprendre.service-public.fr/vosdroits/F36239
