@@ -217,57 +217,9 @@
 
     <!-- Plotly Library -->
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <!-- Taxation JavaScript -->
+    <script src="./taxation-lib.js"></script>
     <script>
-      const PME_REVENUE_THRESHOLD = 10_000_000; // Seuil de chiffre d'affaires pour les PME
-      const IS_REDUCED_TAX_RATE = 0.15; // Taux réduit de l'IS pour les PME
-      const IS_STANDARD_TAX_RATE = 0.25; // Taux standard de l'IS
-
-      const TAX_RATES_IS = [
-        { min: 0, max: 42500, rate: IS_REDUCED_TAX_RATE },
-        { min: 42500, max: Infinity, rate: IS_STANDARD_TAX_RATE },
-      ];
-
-      const TAX_RATES_IR = [
-        { min: 0, max: 11294, rate: 0 },
-        { min: 11294, max: 28797, rate: 0.11 },
-        { min: 28797, max: 82341, rate: 0.3 },
-        { min: 82342, max: 177106, rate: 0.41 },
-        { min: 177106, max: Infinity, rate: 0.45 },
-      ];
-
-      // Charges sociales pour les travailleurs indépendants (TNS)
-      const SOCIAL_CONTRIBUTION_RATE_TNS = 0.45; // https://entreprendre.service-public.fr/vosdroits/F36239
-      const MINIMUM_SOCIAL_CONTRIBUTION_TNS = 93 + 931 + 69 + 134; // https://www.urssaf.fr/accueil/outils-documentation/taux-baremes/taux-cotisations-ac-plnr.html
-
-      // Flat Tax (PFU) sur les dividendes
-      const PFU_RATE = 0.3;
-
-      function calculateIS(profit) {
-        let tax = 0;
-        if (profit <= PME_REVENUE_THRESHOLD) {
-          for (let { min, max, rate } of TAX_RATES_IS) {
-            if (profit > min) {
-              const taxableIncome = Math.min(profit, max) - min;
-              tax += taxableIncome * rate;
-            }
-          }
-        } else {
-          tax = profit * IS_STANDARD_TAX_RATE;
-        }
-        return tax;
-      }
-
-      function calculateIR(profit) {
-        let tax = 0;
-        for (let { min, max, rate } of TAX_RATES_IR) {
-          if (profit > min) {
-            const taxableIncome = Math.min(profit, max) - min;
-            tax += taxableIncome * rate;
-          }
-        }
-        return tax;
-      }
-
       function calculateTax(
         socialCapital,
         revenue,
@@ -340,18 +292,18 @@
         // https://www.economie.gouv.fr/particuliers/tranches-imposition-impot-revenu
         incomeTax =
           taxOption === "ir"
-            ? calculateIR(netProfit - socialTax)
-            : calculateIR(salary);
+            ? calculateIR(netProfit - socialTax).tax
+            : calculateIR(salary).tax;
 
         // https://entreprendre.service-public.fr/vosdroits/F32963#:~:text=Les%20dividendes%20per%C3%A7us%20par%20les,une%20personne%20morale%20(soci%C3%A9t%C3%A9).
         if (taxOption === "is") {
           if (dividendsTaxOption === "pfu") {
             dividendsTax = dividends * PFU_RATE;
           } else {
-            dividendsTax = calculateIR(dividends);
+            dividendsTax = calculateIR(dividends).tax;
           }
         } else {
-          dividendsTax = calculateIR(dividends);
+          dividendsTax = calculateIR(dividends).tax;
         }
 
         return {
