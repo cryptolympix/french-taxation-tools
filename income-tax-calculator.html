@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Calculateur d'imposition sur le revenu</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #121212;
+        color: #ffffff;
+        margin: 0 auto;
+        width: 80%;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        text-align: center;
+      }
+      .container {
+        width: 100%;
+        max-width: 700px;
+        margin: 30px auto;
+        padding: 20px;
+        background: #1e1e1e;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+      }
+      form {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 15px; /* Adds space between elements */
+      }
+      label {
+        display: block;
+        margin-top: 10px;
+      }
+      input,
+      select {
+        padding: 10px;
+        margin-top: 5px;
+        background-color: #1e1e1e;
+        color: #ffffff;
+        border: 1px solid #333333;
+        width: 250px;
+      }
+      button {
+        padding: 10px 20px;
+        margin-top: 15px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        cursor: pointer;
+      }
+      button:hover {
+        background-color: #0056b3;
+      }
+      .result {
+        margin-top: 20px;
+        padding: 15px;
+        border: 1px solid #333333;
+        background: #1e1e1e;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+        background-color: #1e1e1e;
+        color: #ffffff;
+      }
+      th,
+      td {
+        border: 1px solid #333333;
+        padding: 10px;
+        text-align: center;
+      }
+      th {
+        background-color: #333333;
+      }
+      footer {
+        background: #1e1e1e;
+        color: #b0b0b0;
+        text-align: center;
+        font-size: 0.9em;
+        border-top: 1px solid #444;
+        padding: 15px;
+        margin-top: auto;
+      }
+      footer p {
+        margin: 0;
+      }
+      footer a {
+        color: #007bff;
+        text-decoration: none;
+      }
+      footer a:hover {
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Calculateur d'imposition sur le revenu</h1>
+
+      <form id="taxCalculator">
+        <label for="">Revenu imposable (€) :</label>
+        <input
+          type="number"
+          id="income"
+          name="income"
+          placeholder="Entrez votre revenu imposable"
+          required
+        />
+
+        <label for="familyQuotient">Nombre de parts fiscales :</label>
+        <input
+          type="number"
+          id="familyQuotient"
+          name="familyQuotient"
+          placeholder="Entrez le nombre de parts"
+          value="1"
+          required
+          step="0.5"
+        />
+
+        <button type="button" onclick="displayResult()">Calculer</button>
+      </form>
+
+      <div>
+        <h2>Grille des taux d'imposition sur le revenu</h2>
+        <table id="taxTable">
+          <thead>
+            <tr>
+              <th>Tranche de revenu (€)</th>
+              <th>Taux d'imposition (%)</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="result" id="result">
+        <h2>Résultats :</h2>
+        <p id="resultText">
+          Remplissez les informations ci-dessus et cliquez sur "Calculer".
+        </p>
+        <div id="breakdownTableContainer" style="display: none">
+          <table id="breakdownTable">
+            <thead>
+              <tr>
+                <th>Tranche (€)</th>
+                <th>Montant Taxable (€)</th>
+                <th>Impôt (€)</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <footer>
+        <h2>Plus d'informations</h2>
+        <p>
+          Sur les tranches d'imposition sur le revenu à l'adresse :<br />
+          <a
+            href="https://www.economie.gouv.fr/particuliers/tranches-imposition-impot-revenu"
+            target="_blank"
+          >
+            https://www.economie.gouv.fr/particuliers/tranches-imposition-impot-revenu
+          </a>
+        </p>
+        <p>
+          Sur la décôte de l'impôt sur le revenu à l'adresse :<br />
+          <a
+            href="https://www.economie.gouv.fr/particuliers/decote-impot-revenu"
+            target="_blank"
+          >
+            https://www.economie.gouv.fr/particuliers/decote-impot-revenu</a
+          >
+        </p>
+      </footer>
+    </div>
+
+    <script src="./taxation-lib.js"></script>
+    <script>
+      // Populate the income tax table
+      function populateTaxTable() {
+        const tableBody = document.querySelector("#taxTable tbody");
+        tableBody.innerHTML = ""; // Clear the table first
+        TAX_RATES_IR.forEach((grid) => {
+          const row = document.createElement("tr");
+          const range =
+            grid.max === Infinity
+              ? `${grid.min} et plus`
+              : `${grid.min} - ${grid.max}`;
+          row.innerHTML = `
+            <td>${range}</td>
+            <td>${grid.rate * 100} %</td>
+          `;
+          tableBody.appendChild(row);
+        });
+      }
+
+      function calculateTax(income, familyQuotient) {
+        if (
+          isNaN(income) ||
+          income <= 0 ||
+          isNaN(familyQuotient) ||
+          familyQuotient <= 0
+        ) {
+          document.getElementById("result").innerHTML =
+            "Veuillez entrer un revenu imposable et un nombre de parts valides.";
+          return;
+        }
+
+        // Calcul with quotient familial
+        const { taxBreakdown, tax } = calculateIR(income / familyQuotient);
+        const totalTax = tax * familyQuotient;
+        const decote = calculteDecote(totalTax, familyQuotient);
+        const totalTaxWithDecote = totalTax - decote;
+
+        return {
+          totalTax,
+          totalTaxWithDecote,
+          taxBreakdown,
+          decote,
+        };
+      }
+
+      function displayResult() {
+        const income = parseFloat(document.getElementById("income").value);
+        const familyQuotient = parseFloat(
+          document.getElementById("familyQuotient").value
+        );
+
+        const { totalTax, totalTaxWithDecote, taxBreakdown, decote } =
+          calculateTax(income, familyQuotient);
+
+        // ============ HTML elements ============ //
+
+        const resultContainer = document.getElementById("result");
+        const resultText = document.getElementById("resultText");
+        const breakdownTableContainer = document.getElementById(
+          "breakdownTableContainer"
+        );
+        const breakdownTableBody = document.querySelector(
+          "#breakdownTable tbody"
+        );
+
+        // Update the result text
+        resultText.innerHTML = `
+          <strong>Impôt sur le revenu :</strong> ${totalTaxWithDecote.toFixed(
+            0
+          )} €<br />Décôte : ${decote.toFixed(0)} €
+        `;
+
+        // Show the breakdown container
+        breakdownTableContainer.style.display = "block"; // Show the breakdown table
+
+        // Clear the old breakdown table
+        breakdownTableBody.innerHTML = ""; // Clear old data
+
+        // Update the breakdown table
+        taxBreakdown.forEach((row) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${row.range}</td>
+            <td>${row.taxableAmount}</td>
+            <td>${row.taxForBracket}</td>
+          `;
+          breakdownTableBody.appendChild(tr);
+        });
+      }
+
+      // Initialize the tax table on page load
+      window.onload = populateTaxTable;
+    </script>
+  </body>
+</html>

@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Simulateur d'imposition EURL</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        background-color: #121212;
+        color: #e0e0e0;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+      }
+      .container {
+        width: 100%;
+        max-width: 700px;
+        margin: 30px auto;
+        padding: 20px;
+        background: #1e1e1e;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+      }
+      h1 {
+        text-align: center;
+        color: #ffffff;
+      }
+      p {
+        margin: 10px 0;
+      }
+      label {
+        display: block;
+        margin-top: 10px;
+        color: #b0b0b0;
+        font-weight: bold;
+      }
+      input,
+      select {
+        width: 100%;
+        padding: 10px;
+        margin-top: 5px;
+        background: #2c2c2c;
+        color: #e0e0e0;
+        border: 1px solid #444;
+        border-radius: 5px;
+        box-sizing: border-box;
+      }
+      .description {
+        font-size: 0.9em;
+        color: #aaaaaa;
+        margin-top: 5px;
+      }
+      button {
+        width: 100%;
+        padding: 10px;
+        background: #007bff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-top: 30px;
+        font-weight: bold;
+      }
+      button:hover {
+        background: #0056b3;
+      }
+      .result {
+        margin-top: 20px;
+        padding: 15px;
+        background: #2d3748;
+        color: #e0e0e0;
+        border-left: 5px solid #007bff;
+        font-size: 1.1em;
+      }
+      .result hr {
+        margin-top: 20px;
+        margin-bottom: 20px;
+        border: 1;
+        border-top: 1px solid #444;
+      }
+      .result h2 {
+        margin-top: 10px;
+      }
+      .result p {
+        margin-top: 10px;
+      }
+      footer {
+        background: #1e1e1e;
+        color: #b0b0b0;
+        text-align: center;
+        font-size: 0.9em;
+        border-top: 1px solid #444;
+        padding: 15px;
+        margin-top: auto;
+      }
+      a {
+        color: #007bff;
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Simulateur d'imposition EURL</h1>
+
+      <form id="taxForm">
+        <label for="socialCapital">Capital social (€):</label>
+        <input
+          type="number"
+          id="socialCapital"
+          placeholder="Entrez le montant du capital social"
+          required
+        />
+
+        <label for="revenue">Chiffre d'affaires (€):</label>
+        <input
+          type="number"
+          id="revenue"
+          placeholder="Entrez le chiffre d'affaires annuel brut (avant déduction des charges)"
+          required
+        />
+        <p class="description">
+          Le chiffre d'affaires correspond à la somme totale des bénéfices
+          (ventes, prestations de services, etc.).
+        </p>
+
+        <label for="expenses">Charges (€):</label>
+        <input
+          type="number"
+          id="expenses"
+          placeholder="Indiquez le montant total des dépenses annuelles (loyer, salaires, matériel, etc.)"
+          required
+        />
+        <p class="description">
+          Les charges correspondent à l'ensemble des dépenses nécessaires à
+          l'activité de l'entreprise.
+        </p>
+
+        <label for="taxOption">Régime fiscal :</label>
+        <select id="taxOption" required>
+          <option value="ir">Impôt sur le revenu (IR)</option>
+          <option value="is">Impôt sur les sociétés (IS)</option>
+        </select>
+        <p class="description">
+          Dans le cas de l'IR, les bénéfices de l'entreprise sont imposés sur le
+          foyer fiscal de l'associé. Dans le cas de l'IS, les bénéfices sont
+          imposés au niveau de l'entreprise après déduction des charges (frais
+          de fonctionnement, salaire, charges sociales, etc.). <br />En savoir
+          plus :
+          <a
+            href="https://entreprendre.service-public.fr/vosdroits/N13442"
+            target="_blank"
+            >https://entreprendre.service-public.fr/vosdroits/N13442</a
+          >
+        </p>
+
+        <label for="salary">Salaire (€):</label>
+        <input
+          type="number"
+          id="salary"
+          placeholder="Saisissez le montant du salaire annuel"
+          required
+        />
+        <p class="description">
+          Le salaire correspond à la rémunération de l'associé pour son travail
+          au sein de l'entreprise. Il s'agit de l'ensemble des virements
+          effectués du compte de l'entreprise vers le compte personnel de
+          l'associé. Dans une EURL avec l'IS, il est déductible du bénéfice
+          imposable.
+        </p>
+
+        <label for="dividends">Dividendes (€):</label>
+        <input
+          type="number"
+          id="dividends"
+          value="0"
+          placeholder="Saisissez le montant des dividendes"
+          required
+        />
+        <p class="description">
+          Les dividendes sont la part des bénéfices distribuée aux associés en
+          fonction de leurs parts sociales, après paiement de l'impôt sur les
+          bénéfices. <br />En savoir plus :
+          <a
+            href="https://entreprendre.service-public.fr/vosdroits/F32963"
+            target="_blank"
+            >https://entreprendre.service-public.fr/vosdroits/F32963</a
+          >
+        </p>
+
+        <label for="dividendsTaxOption">Fiscalité des dividendes :</label>
+        <select id="dividendsTaxOption" required>
+          <option value="pfu">Prélèvement Forfaitaire Unique (PFU)</option>
+          <option value="ir">Impôt sur le revenu (IR)</option>
+        </select>
+        <p class="description">
+          Le choix du régime fiscal des dividendes détermine le taux
+          d'imposition applicable.
+        </p>
+
+        <button type="button" onclick="displayResult()">Calculer</button>
+      </form>
+      <div id="result" class="result" style="display: none"></div>
+    </div>
+
+    <footer>
+      <h2>Plus d'informations</h2>
+      <p>
+        Plus d'informations sur l'EURL :
+        <a
+          href="https://entreprendre.service-public.fr/vosdroits/F37777"
+          target="_blank"
+        >
+          https://entreprendre.service-public.fr/vosdroits/F37777</a
+        >
+      </p>
+      <p>
+        Les taux de cotisations sosiales pour les travailleurs indépendants
+        (TNS) :
+        <a
+          href="https://www.urssaf.fr/accueil/outils-documentation/taux-baremes/taux-cotisations-ac-plnr.html"
+          target="_blank"
+          >https://www.urssaf.fr/accueil/outils-documentation/taux-baremes/taux-cotisations-ac-plnr.html</a
+        >
+      </p>
+      <p>
+        Simulateur en ligne :
+        <a
+          href="https://mon-entreprise.urssaf.fr/simulateurs/ind%C3%A9pendant"
+          target="_blank"
+          >https://mon-entreprise.urssaf.fr/simulateurs/ind%C3%A9pendant</a
+        >
+      </p>
+    </footer>
+
+    <script src="./taxation-lib.js"></script>
+    <script>
+      function calculateTax(
+        socialCapital,
+        revenue,
+        expenses,
+        taxOption,
+        salary,
+        dividends,
+        dividendsTaxOption
+      ) {
+        if (
+          isNaN(socialCapital) ||
+          isNaN(revenue) ||
+          isNaN(expenses) ||
+          isNaN(salary) ||
+          isNaN(dividends)
+        ) {
+          alert("Veuillez entrer des valeurs valides.");
+          return;
+        }
+
+        if (
+          socialCapital < 0 ||
+          revenue < 0 ||
+          expenses < 0 ||
+          salary < 0 ||
+          dividends < 0
+        ) {
+          alert("Les valeurs ne peuvent pas être négatives.");
+          return;
+        }
+
+        const maximumSalary =
+          (revenue - expenses) / (1 + SOCIAL_CONTRIBUTION_RATE_TNS);
+
+        if (salary > maximumSalary) {
+          alert(
+            `Le montant du salaire annuel maximum possible est de ${maximumSalary.toFixed(
+              0
+            )} €.`
+          );
+        }
+
+        const netProfit = revenue - expenses;
+        let socialTax = 0; // Charges sociales
+        let profitTax = 0; // Impôt sur les bénéfices
+        let incomeTax = 0; // Impôt sur le revenu
+        let dividendsTax = 0; // Impôt sur les dividendes
+
+        if (taxOption === "ir") {
+          socialTax += salary * SOCIAL_CONTRIBUTION_RATE_TNS;
+          if (dividends > socialCapital * 0.1) {
+            let taxabaleDividends = dividends - socialCapital * 0.1;
+            socialTax += taxabaleDividends * SOCIAL_CONTRIBUTION_RATE_TNS;
+          }
+        } else {
+          socialTax += salary * SOCIAL_CONTRIBUTION_RATE_TNS;
+        }
+
+        // Minimum social contribution for TNS
+        if (socialTax < MINIMUM_SOCIAL_CONTRIBUTION_TNS) {
+          socialTax = MINIMUM_SOCIAL_CONTRIBUTION_TNS;
+        }
+
+        if (taxOption === "ir") {
+          profitTax = 0;
+        } else {
+          profitTax = calculateIS(netProfit - salary - socialTax);
+        }
+
+        // https://www.economie.gouv.fr/particuliers/tranches-imposition-impot-revenu
+        incomeTax =
+          taxOption === "ir"
+            ? calculateIR(netProfit - socialTax).tax
+            : calculateIR(salary).tax;
+
+        // https://entreprendre.service-public.fr/vosdroits/F32963#:~:text=Les%20dividendes%20per%C3%A7us%20par%20les,une%20personne%20morale%20(soci%C3%A9t%C3%A9).
+        if (taxOption === "is") {
+          if (dividendsTaxOption === "pfu") {
+            dividendsTax = dividends * PFU_RATE;
+          } else {
+            dividendsTax = calculateIR(dividends).tax;
+          }
+        } else {
+          dividendsTax = calculateIR(dividends).tax;
+        }
+
+        return {
+          socialTax,
+          profitTax,
+          incomeTax,
+          dividendsTax,
+        };
+      }
+
+      function displayResult() {
+        // Get form values
+        const socialCapital = document.getElementById("socialCapital").value;
+        const revenue = parseFloat(document.getElementById("revenue").value);
+        const expenses = parseFloat(document.getElementById("expenses").value);
+        const taxOption = document.getElementById("taxOption").value;
+        const salary = parseFloat(document.getElementById("salary").value);
+        const dividends = parseFloat(
+          document.getElementById("dividends").value
+        );
+        const dividendsTaxOption =
+          document.getElementById("dividendsTaxOption").value;
+
+        // Calculate taxes
+        const { socialTax, profitTax, incomeTax, dividendsTax } = calculateTax(
+          socialCapital,
+          revenue,
+          expenses,
+          taxOption,
+          salary,
+          dividends,
+          dividendsTaxOption
+        );
+
+        // Calculate results
+        const netProfit = revenue - expenses;
+        const totalTax = socialTax + profitTax; // Total tax paid by the company
+        const remainingProfit = netProfit - salary - dividends - totalTax;
+        const netIncome = salary + dividends;
+        const incomeAfterTax = netIncome - incomeTax - dividendsTax;
+        const totalImposition =
+          socialTax + profitTax + incomeTax + dividendsTax;
+        const totalImpositionPercentage = (totalImposition / revenue) * 100;
+
+        // Check if the total tax and salary/dividends exceed the net profit
+        if (netProfit - salary - dividends - totalImposition < 0) {
+          alert(
+            "Le montant total des impôts et des rémunérations ne peut pas dépasser le bénéfice net de l'entreprise."
+          );
+          return;
+        }
+
+        // Display results
+        const resultElement = document.getElementById("result");
+        resultElement.style.display = "block";
+        resultElement.innerHTML = `
+          <h2>Résultat pour l'entreprise :</h2>
+          <p><strong>Bénéfice net :</strong> ${netProfit.toFixed(0)} €</p>
+          <p><strong>Charges sociales :</strong> ${socialTax.toFixed(0)} €</p>
+          <p><strong>Impôt sur les bénéfices :</strong> ${profitTax.toFixed(
+            0
+          )} €</p>
+          <p><strong>Total de l'imposition :</strong> ${totalTax.toFixed(
+            0
+          )} €</p>
+          <p><strong>Flux sortant :</strong> ${(
+            salary +
+            dividends +
+            totalTax
+          ).toFixed(0)} €</p>
+          <p><strong>Bénéfice restant :</strong> ${remainingProfit.toFixed(
+            0
+          )} €</p>
+
+          <hr />
+
+          <h2>Résultat pour l'associé :</h2>
+          <p><strong>Rémunération nette :</strong> ${netIncome.toFixed(0)} €</p>
+          <p><strong>Impôt sur le revenu :</strong> ${(
+            incomeTax + dividendsTax
+          ).toFixed(0)} €</p>
+          <p><strong>Revenu après impôt :</strong> ${incomeAfterTax.toFixed(
+            0
+          )} €</p>
+
+          <hr />
+
+          <h2>Résultat général :</h2>
+          <p><strong>Imposition totale :</strong> ${totalImposition.toFixed(
+            0
+          )} € (${totalImpositionPercentage.toFixed(
+          0
+        )} % du chiffre d'affaires)</p>
+        `;
+      }
+    </script>
+  </body>
+</html>

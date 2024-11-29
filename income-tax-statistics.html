@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Statistiques sur l'impôt sur le revenu</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #121212;
+        color: #ffffff;
+        margin: 0 auto;
+        padding: 20px;
+        width: 80%;
+        max-width: 1200px;
+        text-align: center;
+      }
+      h1,
+      h2 {
+        text-align: center;
+      }
+      h2 {
+        margin-top: 40px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+        background-color: #1e1e1e;
+        color: #ffffff;
+      }
+      th,
+      td {
+        border: 1px solid #333333;
+        padding: 10px;
+        text-align: center;
+      }
+      th {
+        background-color: #333333;
+      }
+      canvas {
+        margin-top: 30px;
+        background-color: #1e1e1e;
+      }
+      #tax3DChart {
+        width: 100%;
+        height: 600px;
+        position: relative;
+        margin: 30px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Statistiques sur l'impôt sur le revenu</h1>
+
+    <div>
+      <h2>Grille des taux d'imposition sur le revenu</h2>
+      <table id="taxTable">
+        <thead>
+          <tr>
+            <th>Tranche de revenu (€)</th>
+            <th>Taux d'imposition (%)</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <script src="./taxation-lib.js"></script>
+    <script>
+      function populateTaxTable() {
+        const tableBody = document.querySelector("#taxTable tbody");
+        tableBody.innerHTML = ""; // Clear the table first
+        TAX_RATES_IR.forEach((grid) => {
+          const range =
+            grid.max === Infinity
+              ? `${grid.min} et plus`
+              : `${grid.min} - ${grid.max}`;
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${range}</td>
+            <td>${grid.rate * 100} %</td>
+          `;
+          tableBody.appendChild(row);
+        });
+      }
+
+      function generateChartData(
+        familyQuotient,
+        maxIncome = 100000,
+        step = 1000
+      ) {
+        const data = [];
+        for (let income = 0; income <= maxIncome; income += step) {
+          const { tax } = calculateIR(income / familyQuotient);
+          const totalTax = tax * familyQuotient;
+          const decote = calculteDecote(totalTax, familyQuotient);
+          const totalTaxWithDecote = totalTax - decote;
+          data.push({ income, tax: tax.toFixed(0) });
+        }
+        return data;
+      }
+
+      function generate3DChartData(
+        familyQuotient,
+        maxIncome = 100000,
+        step = 2500
+      ) {
+        const x = []; // Total income
+        const y = []; // Income difference
+        const z = []; // Tax
+
+        for (
+          let totalIncome = step;
+          totalIncome <= maxIncome;
+          totalIncome += step
+        ) {
+          for (let diff = 0; diff <= totalIncome; diff += step) {
+            // Calculate the tax for the two individuals
+            if (familyQuotient == 1) {
+              const { tax: tax1 } = calculateIR((totalIncome + diff) / 2);
+              const { tax: tax2 } = calculateIR((totalIncome - diff) / 2);
+              const finalTax = tax1 + tax2;
+              x.push(totalIncome);
+              y.push(diff);
+              z.push(finalTax);
+            }
+            // Calculate the tax for the couple
+            else {
+              const { tax } = calculateIR(totalIncome / familyQuotient);
+              const finalTax = tax * familyQuotient;
+              x.push(totalIncome);
+              y.push(diff);
+              z.push(finalTax.toFixed(0));
+            }
+          }
+        }
+
+        return { x, y, z };
+      }
+
+      // Chart.js initialization
+      function createChart(ctx, data) {
+        new Chart(ctx, {
+          type: "line",
+          data: {
+            labels: data.map((item) => item.income),
+            datasets: [
+              {
+                label: "Impôt sur le revenu (€)",
+                data: data.map((item) => item.tax),
+                backgroundColor: "rgba(0, 123, 255, 0.5)",
+                borderColor: "rgba(0, 123, 255, 1)",
+                borderWidth: 2,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: {
+                labels: {
+                  color: "#ffffff",
+                },
+              },
+            },
+            scales: {
+              x: {
+                title: {
+                  display: true,
+                  text: "Revenu (€)",
+                  color: "#ffffff",
+                },
+                ticks: {
+                  color: "#ffffff",
+                },
+              },
+              y: {
+                title: {
+                  display: true,
+                  text: "Impôt (€)",
+                  color: "#ffffff",
+                },
+                ticks: {
+                  color: "#ffffff",
+                },
+              },
+            },
+          },
+        });
+      }
+
+      function create3DChart(containerId, datasets) {
+        const traces = datasets.map((dataset, index) => ({
+          x: dataset.x,
+          y: dataset.y,
+          z: dataset.z,
+          mode: "markers",
+          name: dataset.name,
+          marker: {
+            size: 5,
+            color: dataset.colors,
+            colorscale: index === 0 ? "Plasma" : "Cividis", // Differentiating colors
+            showscale: false, // Show color scale only for the first trace
+          },
+          type: "scatter3d",
+        }));
+
+        const layout = {
+          scene: {
+            xaxis: { title: "x = Revenu total (€)" },
+            yaxis: { title: "y = Différence de revenus (€)" },
+            zaxis: { title: "z = Impôt (€)" },
+          },
+          margin: {
+            l: 0, // Left margin
+            r: 0, // Right margin
+            t: 0, // Top margin
+            b: 40, // Bottom margin
+          },
+          paper_bgcolor: "#1e1e1e",
+          font: { color: "#ffffff" },
+        };
+
+        Plotly.newPlot(containerId, traces, layout);
+      }
+
+      // Initialize the page
+      window.onload = () => {
+        populateTaxTable();
+
+        const familyQuotients = [1, 2];
+
+        for (const quotient of familyQuotients) {
+          // Create the html elements
+          const h2 = document.createElement("h2");
+          h2.textContent = `Évolution de l'impôt sur le revenu pour ${quotient} part(s) dans le foyer fiscal`;
+          document.body.appendChild(h2);
+          const canvas = document.createElement("canvas");
+          canvas.id = `taxChart${quotient}`;
+          document.body.appendChild(canvas);
+
+          // Generate the data and create the chart
+          const data = generateChartData(quotient);
+          const ctx = document
+            .getElementById(`taxChart${quotient}`)
+            .getContext("2d");
+          createChart(ctx, data);
+        }
+
+        // Create the html elements
+        const h2 = document.createElement("h2");
+        h2.textContent =
+          "Impôt sur le revenu en fonction du revenu total et de la différence de revenus";
+        document.body.appendChild(h2);
+        const div = document.createElement("div");
+        div.id = "tax3DChart";
+        document.body.appendChild(div);
+
+        // Generate the 3D data and create the chart
+
+        const dataSingle = generate3DChartData(1); // Family quotient of 1
+        dataSingle.name = "Unmarried Individuals";
+        const dataCouple = generate3DChartData(2); // Family quotient of 2
+        dataCouple.name = "Couple";
+        create3DChart("tax3DChart", [dataCouple, dataSingle]);
+      };
+    </script>
+  </body>
+</html>
