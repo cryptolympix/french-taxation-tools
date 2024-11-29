@@ -250,9 +250,11 @@
 
         // Update the result text
         resultText.innerHTML = `
-          <strong>Impôt sur le revenu :</strong> ${taxWithDecote.toFixed(
+          <strong>Impôt sur le revenu :</strong> ${tax.toFixed(
             0
-          )} €<br />Décôte : ${decote.toFixed(0)} €
+          )} €<br /><strong>Décôte :</strong> ${decote.toFixed(
+          0
+        )} €<br /><strong>Total :</strong> ${taxWithDecote.toFixed(0)} €
         `;
 
         // Show the breakdown container
