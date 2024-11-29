@@ -28,6 +28,9 @@
         background: #1e1e1e;
         border-radius: 8px;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
       }
       h1 {
         text-align: center;
@@ -39,6 +42,9 @@
         margin: 20px 0 10px 0;
         color: #ffffff;
         font-weight: bold;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
       }
       p {
         margin: 10px 0;
@@ -46,6 +52,7 @@
       input[type="number"],
       .checkbox-container input {
         width: 100%;
+        max-width: 600px;
         padding: 10px;
         background: #333;
         color: #fff;
@@ -63,11 +70,12 @@
         color: #ffffff;
       }
       input[type="checkbox"] {
-        margin-right: 10px;
+        margin: 0px 10px;
         width: auto;
       }
       button {
         width: 100%;
+        max-width: 600px;
         padding: 10px;
         background: #007bff;
         color: white;
@@ -166,9 +174,9 @@
       </div>
 
       <label for="showPercentage"
-        >Afficher les données en pourcentage du chiffre d'affaires :</label
-      >
-      <input type="checkbox" id="showPercentage" />
+        >Afficher les données en pourcentage du chiffre d'affaires
+        <input type="checkbox" id="showPercentage"
+      /></label>
 
       <button type="button" onclick="generate3DPlot()">
         Afficher les résultats
