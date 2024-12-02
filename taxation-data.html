@@ -152,19 +152,25 @@
             key: "Seuil de chiffre d'affaires pour les PME",
             value: PME_REVENUE_THRESHOLD + " €",
           },
-          { key: "Taux réduit de l'IS", value: IS_REDUCED_TAX_RATE + "%" },
-          { key: "Taux standard de l'IS", value: IS_STANDARD_TAX_RATE + "%" },
+          {
+            key: "Taux réduit de l'IS",
+            value: IS_REDUCED_TAX_RATE * 100 + " %",
+          },
+          {
+            key: "Taux standard de l'IS",
+            value: IS_STANDARD_TAX_RATE * 100 + " %",
+          },
           {
             key: "Taux de cotisation sociale pour les EURL",
-            value: EURL_SOCIAL_CONTRIBUTION_RATE + "%",
+            value: EURL_SOCIAL_CONTRIBUTION_RATE * 100 + " %",
           },
           {
             key: "Taux de cotisation sociale pour les SASU",
-            value: SASU_SOCIAL_CONTRIBUTION_RATE + "%",
+            value: SASU_SOCIAL_CONTRIBUTION_RATE * 100 + " %",
           },
           {
             key: "Taux du prélèvement forfaitaire unique (PFU)",
-            value: PFU_RATE + "%",
+            value: PFU_RATE * 100 + " %",
           },
         ]);
 
@@ -172,10 +178,12 @@
           isTaxRatesTable,
           TAX_RATES_IS.map((rate) => ({
             tranche:
-              rate.max === Infinity
-                ? "Supérieur à " + rate.min
-                : rate.min + " - " + rate.max,
-            taux: rate.rate + "%",
+              rate.min === 0
+                ? "Moins de " + rate.max + " €"
+                : rate.max === Infinity
+                ? "Supérieur à " + rate.min + " €"
+                : "De " + rate.min + " € à " + rate.max + " €",
+            taux: rate.rate * 100 + " %",
           })),
           true
         );
@@ -185,18 +193,18 @@
             key: "Seuils de revenu pour la décôte de l'IR",
             value:
               DECOTE_APPLICATION_THRESHOLD[0] +
-              "€ (1 part) - " +
+              " € (1 part) - " +
               DECOTE_APPLICATION_THRESHOLD[1] +
-              "€ (2 parts)",
+              " € (2 parts)",
           },
           {
             key: "Décôte maximale de l'IR",
             value:
-              DECOTE_MAX[0] + "€ (1 part) - " + DECOTE_MAX[1] + "€ (2 parts)",
+              DECOTE_MAX[0] + " € (1 part) - " + DECOTE_MAX[1] + " € (2 parts)",
           },
           {
             key: "Pourcentage de décôte de l'IR",
-            value: DECOTE_PERCENTAGE + "%",
+            value: DECOTE_PERCENTAGE * 100 + " %",
           },
         ]);
 
@@ -204,10 +212,12 @@
           irTaxRatesTable,
           TAX_RATES_IR.map((rate) => ({
             tranche:
-              rate.max === Infinity
-                ? "Supérieur à " + rate.min
-                : rate.min + " - " + rate.max,
-            taux: rate.rate + "%",
+              rate.min === 0
+                ? "Moins de " + rate.max + " €"
+                : rate.max === Infinity
+                ? "Supérieur à " + rate.min + " €"
+                : "De " + rate.min + " € à " + rate.max + " €",
+            taux: rate.rate * 100 + " %",
           })),
           true
         );
