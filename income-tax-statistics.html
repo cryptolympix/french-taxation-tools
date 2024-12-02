@@ -22,28 +22,11 @@
         max-width: 1200px;
         text-align: center;
       }
-      h1,
-      h2 {
-        text-align: center;
+      h1 {
+        margin-bottom: 20px;
       }
       h2 {
         margin-top: 40px;
-      }
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 20px;
-        background-color: #1e1e1e;
-        color: #ffffff;
-      }
-      th,
-      td {
-        border: 1px solid #333333;
-        padding: 10px;
-        text-align: center;
-      }
-      th {
-        background-color: #333333;
       }
       canvas {
         margin-top: 30px;
@@ -60,38 +43,8 @@
   <body>
     <h1>Statistiques sur l'impôt sur le revenu</h1>
 
-    <div>
-      <h2>Grille des taux d'imposition sur le revenu</h2>
-      <table id="taxTable">
-        <thead>
-          <tr>
-            <th>Tranche de revenu (€)</th>
-            <th>Taux d'imposition (%)</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
-
     <script src="./taxation-lib.js"></script>
     <script>
-      function populateTaxTable() {
-        const tableBody = document.querySelector("#taxTable tbody");
-        tableBody.innerHTML = ""; // Clear the table first
-        TAX_RATES_IR.forEach((grid) => {
-          const range =
-            grid.max === Infinity
-              ? `${grid.min} et plus`
-              : `${grid.min} - ${grid.max}`;
-          const row = document.createElement("tr");
-          row.innerHTML = `
-            <td>${range}</td>
-            <td>${grid.rate * 100} %</td>
-          `;
-          tableBody.appendChild(row);
-        });
-      }
-
       function generateChartData(
         familyQuotient,
         maxIncome = 100000,
@@ -233,14 +186,14 @@
 
       // Initialize the page
       window.onload = () => {
-        populateTaxTable();
-
         const familyQuotients = [1, 2];
 
         for (const quotient of familyQuotients) {
           // Create the html elements
           const h2 = document.createElement("h2");
-          h2.textContent = `Évolution de l'impôt sur le revenu pour ${quotient} part(s) dans le foyer fiscal`;
+          h2.textContent = `Évolution de l'impôt sur le revenu pour ${quotient} ${
+            quotient > 1 ? "parts" : "part"
+          } dans le foyer fiscal`;
           document.body.appendChild(h2);
           const canvas = document.createElement("canvas");
           canvas.id = `taxChart${quotient}`;

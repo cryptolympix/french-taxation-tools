@@ -24,6 +24,7 @@ function calculteDecote(tax, familyQuotient = 1) {
 
 // =====================================================================================================================
 
+// https://www.economie.gouv.fr/particuliers/tranches-imposition-impot-revenu
 const TAX_RATES_IR = [
   { min: 0, max: 11294, rate: 0 },
   { min: 11294, max: 28797, rate: 0.11 },
@@ -64,6 +65,7 @@ const PME_REVENUE_THRESHOLD = 10_000_000; // Seuil de chiffre d'affaires pour le
 const IS_REDUCED_TAX_RATE = 0.15; // Taux réduit de l'IS pour les PME
 const IS_STANDARD_TAX_RATE = 0.25; // Taux standard de l'IS
 
+// https://entreprendre.service-public.fr/vosdroits/F23575
 const TAX_RATES_IS = [
   { min: 0, max: 42500, rate: IS_REDUCED_TAX_RATE },
   { min: 42500, max: Infinity, rate: IS_STANDARD_TAX_RATE },
@@ -86,9 +88,14 @@ function calculateIS(profit) {
 
 // =====================================================================================================================
 
-// Charges sociales pour les travailleurs indépendants (TNS)
-const SOCIAL_CONTRIBUTION_RATE_TNS = 0.45; // https://entreprendre.service-public.fr/vosdroits/F36239
-const MINIMUM_SOCIAL_CONTRIBUTION_TNS = 93 + 931 + 69 + 134; // https://www.urssaf.fr/accueil/outils-documentation/taux-baremes/taux-cotisations-ac-plnr.html
+// https://entreprendre.service-public.fr/vosdroits/F36239
+const EURL_SOCIAL_CONTRIBUTION_RATE = 0.45;
 
-// Flat Tax (PFU) sur les dividendes
+// https://entreprendre.service-public.fr/vosdroits/F36240
+const SASU_SOCIAL_CONTRIBUTION_RATE = 0.82;
+
+// https://www.urssaf.fr/accueil/outils-documentation/taux-baremes/taux-cotisations-ac-plnr.html
+const EURL_MINIMUM_SOCIAL_CONTRIBUTION = 93 + 931 + 69 + 134;
+
+// https://www.economie.gouv.fr/particuliers/prelevement-forfaitaire-unique-pfu
 const PFU_RATE = 0.3;

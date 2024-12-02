@@ -29,7 +29,8 @@
         border-radius: 8px;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
       }
-      h1 {
+      h1,
+      h2 {
         margin-bottom: 20px;
       }
       form {
@@ -84,25 +85,6 @@
       th {
         background-color: #333333;
       }
-      footer {
-        background: #1e1e1e;
-        color: #b0b0b0;
-        text-align: center;
-        font-size: 0.9em;
-        border-top: 1px solid #444;
-        padding: 15px;
-        margin-top: auto;
-      }
-      footer p {
-        margin: 10px;
-      }
-      footer a {
-        color: #007bff;
-        text-decoration: none;
-      }
-      footer a:hover {
-        text-decoration: underline;
-      }
     </style>
   </head>
   <body>
@@ -133,19 +115,6 @@
         <button type="button" onclick="displayResult()">Calculer</button>
       </form>
 
-      <div>
-        <h2>Grille des taux d'imposition sur le revenu</h2>
-        <table id="taxTable">
-          <thead>
-            <tr>
-              <th>Tranche de revenu (€)</th>
-              <th>Taux d'imposition (%)</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-
       <div class="result" id="result">
         <h2>Résultats :</h2>
         <p id="resultText">
@@ -164,50 +133,10 @@
           </table>
         </div>
       </div>
-
-      <footer>
-        <h2>Plus d'informations</h2>
-        <p>
-          Sur les tranches d'imposition sur le revenu à l'adresse :<br />
-          <a
-            href="https://www.economie.gouv.fr/particuliers/tranches-imposition-impot-revenu"
-            target="_blank"
-          >
-            https://www.economie.gouv.fr/particuliers/tranches-imposition-impot-revenu
-          </a>
-        </p>
-        <p>
-          Sur la décôte de l'impôt sur le revenu à l'adresse :<br />
-          <a
-            href="https://www.economie.gouv.fr/particuliers/decote-impot-revenu"
-            target="_blank"
-          >
-            https://www.economie.gouv.fr/particuliers/decote-impot-revenu</a
-          >
-        </p>
-      </footer>
     </div>
 
     <script src="./taxation-lib.js"></script>
     <script>
-      // Populate the income tax table
-      function populateTaxTable() {
-        const tableBody = document.querySelector("#taxTable tbody");
-        tableBody.innerHTML = ""; // Clear the table first
-        TAX_RATES_IR.forEach((grid) => {
-          const row = document.createElement("tr");
-          const range =
-            grid.max === Infinity
-              ? `${grid.min} et plus`
-              : `${grid.min} - ${grid.max}`;
-          row.innerHTML = `
-            <td>${range}</td>
-            <td>${grid.rate * 100} %</td>
-          `;
-          tableBody.appendChild(row);
-        });
-      }
-
       function calculateTax(income, familyQuotient) {
         if (
           isNaN(income) ||
@@ -281,9 +210,6 @@
           breakdownTableBody.appendChild(tr);
         });
       }
-
-      // Initialize the tax table on page load
-      window.onload = populateTaxTable;
     </script>
   </body>
 </html>

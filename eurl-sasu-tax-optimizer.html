@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quel choix de rémunération en EURL/SASU ?</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        background-color: #121212;
+        color: #e0e0e0;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+      }
+      .container {
+        width: 100%;
+        max-width: 1200px;
+        margin: 30px auto;
+        padding: 20px;
+        background: #1e1e1e;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      h1 {
+        text-align: center;
+        color: #ffffff;
+        margin-bottom: 40px;
+        margin-top: 10px;
+      }
+      label {
+        display: block;
+        margin: 20px 0 10px 0;
+        color: #ffffff;
+        font-weight: bold;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .checkbox-container {
+        margin-bottom: 20px;
+      }
+      input[type="number"],
+      .checkbox-container input {
+        width: 100%;
+        max-width: 600px;
+        padding: 10px;
+        background: #333;
+        color: #fff;
+        border: 1px solid #444;
+        border-radius: 5px;
+        font-size: 1em;
+      }
+      .checkbox-container label {
+        margin-left: 10px;
+        color: #ffffff;
+      }
+      .checkbox-container p {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+      }
+      input[type="checkbox"] {
+        margin: 0px 10px;
+        width: auto;
+      }
+      button {
+        width: 100%;
+        max-width: 600px;
+        padding: 10px;
+        background: #007bff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-top: 20px;
+        font-weight: bold;
+      }
+      button:hover {
+        background: #0056b3;
+      }
+      #plot3D {
+        width: 100%;
+        height: auto;
+        position: relative;
+        margin: 30px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Quel choix de rémunération en EURL / SASU ?</h1>
+
+      <label for="socialCapital">Capital social (€):</label>
+      <input
+        type="number"
+        id="socialCapital"
+        value="100000"
+        min="10000"
+        step="1000"
+        placeholder="Entrez le montant du capital social"
+      />
+
+      <label for="revenue">Chiffre d'affaires (€):</label>
+      <input
+        type="number"
+        id="revenue"
+        value="100000"
+        min="10000"
+        step="1000"
+        placeholder="Chiffre d'affaires annuel"
+      />
+
+      <label for="expenses">Charges (€):</label>
+      <input
+        type="number"
+        id="expenses"
+        value="0"
+        min="0"
+        step="1000"
+        placeholder="Frais de fonctionnement, achats, etc."
+      />
+
+      <label for="resolution">Résolution :</label>
+      <input
+        type="number"
+        id="resolution"
+        value="50"
+        min="10"
+        step="5"
+        placeholder="Nombre de points pour chaque axe"
+      />
+
+      <label>Comparer :</label>
+      <div class="checkbox-container"></div>
+
+      <label for="showPercentage"
+        >Afficher les données en pourcentage du chiffre d'affaires
+        <input type="checkbox" id="showPercentage"
+      /></label>
+
+      <button type="button" onclick="generate3DPlot()">
+        Afficher les résultats
+      </button>
+
+      <div id="plot3D"></div>
+    </div>
+
+    <!-- Plotly Library -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <!-- Taxation JavaScript -->
+    <script src="./taxation-lib.js"></script>
+    <script>
+      const BUSINESS_TYPES = [
+        "eurl_ir",
+        "eurl_is_pfu",
+        "eurl_is_ir",
+        "sasu_ir_ir",
+        "sasu_ir_pfu",
+        "sasu_is_ir",
+        "sasu_is_pfu",
+      ];
+
+      function calculateTax(
+        businessType,
+        socialCapital,
+        revenue,
+        expenses,
+        taxOption,
+        salary,
+        dividends,
+        dividendsTaxOption,
+        socialContributionRate
+      ) {
+        const netProfit = revenue - expenses;
+        let socialTax = 0; // Charges sociales
+        let profitTax = 0; // Impôt sur les bénéfices
+        let incomeTax = 0; // Impôt sur le revenu
+        let dividendsTax = 0; // Impôt sur les dividendes
+
+        if (taxOption === "ir") {
+          socialTax += salary * socialContributionRate;
+          if (dividends > socialCapital * 0.1) {
+            let taxableDividends = dividends - socialCapital * 0.1;
+            socialTax += taxableDividends * socialContributionRate;
+          }
+        } else {
+          socialTax += salary * socialContributionRate;
+        }
+
+        // Minimum social contribution for TNS
+        if (businessType === "eurl") {
+          socialTax = Math.max(socialTax, EURL_MINIMUM_SOCIAL_CONTRIBUTION);
+        }
+
+        if (taxOption === "ir") {
+          profitTax = 0;
+        } else {
+          profitTax = calculateIS(netProfit - salary - socialTax);
+        }
+
+        incomeTax =
+          taxOption === "ir"
+            ? calculateIR(netProfit - socialTax).tax
+            : calculateIR(salary).tax;
+
+        if (taxOption === "is") {
+          if (dividendsTaxOption === "pfu") {
+            dividendsTax = dividends * PFU_RATE;
+          } else {
+            dividendsTax = calculateIR(dividends).tax;
+          }
+        } else {
+          dividendsTax = calculateIR(dividends).tax;
+        }
+
+        return {
+          socialTax,
+          profitTax,
+          incomeTax,
+          dividendsTax,
+        };
+      }
+
+      function getBusinessLabelName(
+        businessType,
+        taxOption,
+        dividendsTaxOption
+      ) {
+        let name = "";
+        if (businessType === "eurl") {
+          if (taxOption === "ir") {
+            name += `EURL à l'IR`;
+          } else {
+            name += `EURL à l'IS`;
+          }
+        } else {
+          if (taxOption === "ir") {
+            name += `SASU à l'IR`;
+          } else {
+            name += `SASU à l'IS`;
+          }
+        }
+
+        if (dividendsTaxOption) {
+          name += ` avec dividendes taxés au ${
+            dividendsTaxOption === "pfu" ? "PFU" : "barème progressif de l'IR"
+          }`;
+        }
+
+        return name;
+      }
+      function generateDataset(
+        socialCapital,
+        revenue,
+        expenses,
+        selectedTypes,
+        resolution,
+        showPercentage = false
+      ) {
+        let datasets = [];
+
+        for (let type of selectedTypes) {
+          const [businessType, taxOption, dividendsTaxOption] = type.split("_");
+
+          const socialContributionRate =
+            businessType === "sasu"
+              ? SASU_SOCIAL_CONTRIBUTION_RATE
+              : EURL_SOCIAL_CONTRIBUTION_RATE;
+
+          const maximumSalary =
+            (revenue - expenses) / (1 + socialContributionRate);
+
+          let data = [];
+          for (
+            let salary = 0;
+            salary < maximumSalary;
+            salary += revenue / resolution
+          ) {
+            for (
+              let dividends = 0;
+              dividends < revenue;
+              dividends += revenue / resolution
+            ) {
+              const { socialTax, profitTax, incomeTax, dividendsTax } =
+                calculateTax(
+                  businessType,
+                  socialCapital,
+                  revenue,
+                  expenses,
+                  taxOption,
+                  salary,
+                  dividends,
+                  dividendsTaxOption,
+                  socialContributionRate
+                );
+
+              // Calculate results
+              const netProfit = revenue - expenses;
+              const totalTax = socialTax + profitTax; // Total tax paid by the company
+              const remainingProfit = netProfit - salary - dividends - totalTax;
+              const netIncome = salary + dividends;
+              const incomeAfterTax = netIncome - incomeTax - dividendsTax;
+              const totalImposition =
+                socialTax + profitTax + incomeTax + dividendsTax;
+              const totalImpositionPercentage =
+                (totalImposition / revenue) * 100;
+
+              if (revenue - salary - dividends - totalImposition >= 0) {
+                data.push({
+                  salary: showPercentage ? (salary / revenue) * 100 : salary,
+                  dividends: showPercentage
+                    ? (dividends / revenue) * 100
+                    : dividends,
+                  imposition: showPercentage
+                    ? totalImpositionPercentage
+                    : totalImposition,
+                });
+              }
+            }
+          }
+
+          datasets.push({
+            salary: data.map((d) => d.salary),
+            dividends: data.map((d) => d.dividends),
+            imposition: data.map((d) => d.imposition),
+            name: getBusinessLabelName(
+              businessType,
+              taxOption,
+              dividendsTaxOption
+            ),
+          });
+        }
+        return datasets;
+      }
+
+      function generate3DPlot() {
+        const socialCapital = parseFloat(
+          document.getElementById("socialCapital").value
+        );
+        const revenue = parseFloat(document.getElementById("revenue").value);
+        const expenses = parseFloat(document.getElementById("expenses").value);
+        const resolution = parseInt(
+          document.getElementById("resolution").value
+        );
+        const selectedTypes = Array.from(
+          document.querySelectorAll(".checkbox-container input:checked")
+        ).map((checkbox) => checkbox.value);
+        const showPercentage =
+          document.getElementById("showPercentage").checked;
+
+        if (
+          isNaN(socialCapital) ||
+          isNaN(revenue) ||
+          isNaN(expenses) ||
+          isNaN(resolution)
+        ) {
+          alert("Veuillez entrer des valeurs valides.");
+          return;
+        }
+
+        if (
+          socialCapital < 0 ||
+          revenue < 0 ||
+          expenses < 0 ||
+          resolution < 0
+        ) {
+          alert("Les valeurs ne peuvent pas être négatives.");
+          return;
+        }
+
+        if (selectedTypes.length === 0) {
+          alert("Veuillez sélectionner au moins un type d'entreprise.");
+          return;
+        }
+
+        const datasets = generateDataset(
+          socialCapital,
+          revenue,
+          expenses,
+          selectedTypes,
+          resolution,
+          showPercentage
+        );
+        const traces = datasets.map(
+          ({ salary, dividends, imposition, name }) => {
+            return {
+              name,
+              x: salary,
+              y: dividends,
+              z: imposition,
+              mode: "markers",
+              marker: {
+                size: 5,
+                color: 1,
+                colorscale: "Viridis",
+                showscale: false,
+              },
+              type: "scatter3d",
+            };
+          }
+        );
+
+        const layout = {
+          title: {
+            text: "Imposition en fonction du salaire et des dividendes",
+            font: {
+              size: 24,
+              color: "#ffffff",
+              family: "Arial, sans-serif",
+              weight: "bold",
+            },
+          },
+          scene: {
+            xaxis: {
+              title: showPercentage ? "x = Salaire (%)" : "x = Salaire (€)",
+            },
+            yaxis: {
+              title: showPercentage
+                ? "y = Dividendes (%)"
+                : "y = Dividendes (€)",
+            },
+            zaxis: {
+              title: showPercentage
+                ? "z = Imposition (%)"
+                : "z = Imposition (€)",
+            },
+          },
+          paper_bgcolor: "#1e1e1e",
+          font: { color: "#ffffff" },
+        };
+
+        Plotly.newPlot("plot3D", traces, layout);
+      }
+
+      function generateBusinessCheckbox() {
+        for (let type of BUSINESS_TYPES) {
+          const [businessType, taxOption, dividendsTaxOption] = type.split("_");
+
+          const checkbox = document.createElement("input");
+          checkbox.type = "checkbox";
+          checkbox.id = type;
+          checkbox.value = type;
+          checkbox.checked = true;
+
+          const label = document.createElement("label");
+          label.htmlFor = type;
+          label.textContent = getBusinessLabelName(
+            businessType,
+            taxOption,
+            dividendsTaxOption
+          );
+          label.appendChild(checkbox);
+
+          document.querySelector(".checkbox-container").appendChild(label);
+        }
+      }
+
+      window.onload = generateBusinessCheckbox;
+    </script>
+  </body>
+</html>
