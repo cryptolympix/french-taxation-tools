@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Taxation Constants</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #121212;
+        color: #e0e0e0;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+      }
+      .container {
+        width: 100%;
+        max-width: 1200px;
+        margin: 30px auto;
+        padding: 20px;
+        background: #1e1e1e;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+      h1 {
+        text-align: center;
+        color: #b0b0b0;
+        margin-bottom: 40px;
+      }
+      h3 {
+        margin-bottom: 20px;
+      }
+      .constant-section {
+        width: 100%;
+        max-width: 700px;
+        margin-bottom: 30px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+      .constant-section h2 {
+        color: #ffffff;
+        border-bottom: 1px solid #444;
+        padding-bottom: 5px;
+        margin-bottom: 20px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+      }
+      th,
+      td {
+        padding: 10px;
+        border: 1px solid #444;
+      }
+      th {
+        background: #333;
+        color: #fff;
+      }
+      td {
+        background: #2a2a2a;
+      }
+      td:first-child {
+        text-align: left;
+      }
+      td:last-child {
+        text-align: right;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+      <h1>Données Fiscales</h1>
+
+      <div class="constant-section" id="company-tax-section">
+        <h2>Fiscalité des entreprises</h2>
+
+        <table id="company-constant"></table>
+
+        <h3>Taux d'imposition sur les sociétés</h3>
+        <table id="is-tax-rates"></table>
+      </div>
+
+      <div class="constant-section" id="income-tax-section">
+        <h2>Fiscalité du particulier</h2>
+
+        <table id="personal-constant"></table>
+
+        <h3>Barème de l'impôt sur le revenu</h3>
+        <table id="ir-tax-rates"></table>
+      </div>
+    </div>
+
+    <!-- Taxation JavaScript -->
+    <script src="./taxation-lib.js"></script>
+    <script>
+      function generateTable(table, data, displayHeader = false) {
+        const thead = document.createElement("thead");
+        const tbody = document.createElement("tbody");
+
+        if (displayHeader) {
+          // Create header row
+          const headerRow = document.createElement("tr");
+          Object.keys(data[0]).forEach((key) => {
+            const th = document.createElement("th");
+            th.textContent = key.charAt(0).toUpperCase() + key.slice(1);
+            headerRow.appendChild(th);
+          });
+          thead.appendChild(headerRow);
+        }
+
+        // Create data rows
+        data.forEach((row) => {
+          const tr = document.createElement("tr");
+          Object.values(row).forEach((value) => {
+            const td = document.createElement("td");
+            td.textContent = value;
+            tr.appendChild(td);
+          });
+          tbody.appendChild(tr);
+        });
+
+        if (displayHeader) {
+          table.appendChild(thead);
+        }
+        table.appendChild(tbody);
+        return table;
+      }
+
+      window.onload = () => {
+        const companyConstantTable =
+          document.getElementById("company-constant");
+        const isTaxRatesTable = document.getElementById("is-tax-rates");
+        const personalConstantTable =
+          document.getElementById("personal-constant");
+        const irTaxRatesTable = document.getElementById("ir-tax-rates");
+
+        generateTable(companyConstantTable, [
+          {
+            key: "Seuil de chiffre d'affaires pour les PME",
+            value: PME_REVENUE_THRESHOLD + " €",
+          },
+          { key: "Taux réduit de l'IS", value: IS_REDUCED_TAX_RATE + "%" },
+          { key: "Taux standard de l'IS", value: IS_STANDARD_TAX_RATE + "%" },
+          {
+            key: "Taux de cotisation sociale pour les EURL",
+            value: EURL_SOCIAL_CONTRIBUTION_RATE + "%",
+          },
+          {
+            key: "Taux de cotisation sociale pour les SASU",
+            value: SASU_SOCIAL_CONTRIBUTION_RATE + "%",
+          },
+          {
+            key: "Taux du prélèvement forfaitaire unique (PFU)",
+            value: PFU_RATE + "%",
+          },
+        ]);
+
+        generateTable(
+          isTaxRatesTable,
+          TAX_RATES_IS.map((rate) => ({
+            tranche:
+              rate.max === Infinity
+                ? "Supérieur à " + rate.min
+                : rate.min + " - " + rate.max,
+            taux: rate.rate + "%",
+          })),
+          true
+        );
+
+        generateTable(personalConstantTable, [
+          {
+            key: "Seuils de revenu pour la décôte de l'IR",
+            value:
+              DECOTE_APPLICATION_THRESHOLD[0] +
+              "€ (1 part) - " +
+              DECOTE_APPLICATION_THRESHOLD[1] +
+              "€ (2 parts)",
+          },
+          {
+            key: "Décôte maximale de l'IR",
+            value:
+              DECOTE_MAX[0] + "€ (1 part) - " + DECOTE_MAX[1] + "€ (2 parts)",
+          },
+          {
+            key: "Pourcentage de décôte de l'IR",
+            value: DECOTE_PERCENTAGE + "%",
+          },
+        ]);
+
+        generateTable(
+          irTaxRatesTable,
+          TAX_RATES_IR.map((rate) => ({
+            tranche:
+              rate.max === Infinity
+                ? "Supérieur à " + rate.min
+                : rate.min + " - " + rate.max,
+            taux: rate.rate + "%",
+          })),
+          true
+        );
+      };
+    </script>
+  </body>
+</html>
