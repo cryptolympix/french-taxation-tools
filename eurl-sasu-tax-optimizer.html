@@ -210,17 +210,17 @@
 
         incomeTax =
           taxOption === "ir"
-            ? calculateIR(netProfit - socialTax).tax
-            : calculateIR(salary).tax;
+            ? calculateIR(netProfit - socialTax).taxAfterDecote
+            : calculateIR(salary).taxAfterDecote;
 
         if (taxOption === "is") {
           if (dividendsTaxOption === "pfu") {
             dividendsTax = dividends * PFU_RATE;
           } else {
-            dividendsTax = calculateIR(dividends).tax;
+            dividendsTax = calculateIR(dividends).taxAfterDecote;
           }
         } else {
-          dividendsTax = calculateIR(dividends).tax;
+          dividendsTax = calculateIR(dividends).taxAfterDecote;
         }
 
         return {

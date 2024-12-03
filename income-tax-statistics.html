@@ -52,10 +52,11 @@
       ) {
         const data = [];
         for (let income = 0; income <= maxIncome; income += step) {
-          const { tax } = calculateIR(income, familyQuotient);
-          const decote = calculteDecote(tax, familyQuotient);
-          const taxWithDecote = tax - decote;
-          data.push({ income, tax: taxWithDecote.toFixed(0) });
+          const { tax, taxAfterDecote, decote } = calculateIR(
+            income,
+            familyQuotient
+          );
+          data.push({ income, tax: taxAfterDecote.toFixed(0) });
         }
         return data;
       }

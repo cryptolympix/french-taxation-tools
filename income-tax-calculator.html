@@ -92,7 +92,7 @@
       <h1>Calculateur d'imposition sur le revenu</h1>
 
       <form id="taxCalculator">
-        <label for="">Revenu imposable (€) :</label>
+        <label for="income">Revenu imposable (€) :</label>
         <input
           type="number"
           id="income"
@@ -150,13 +150,14 @@
         }
 
         // Calcul with quotient familial
-        const { tax, taxBreakdown } = calculateIR(income, familyQuotient);
-        const decote = calculteDecote(tax, familyQuotient);
-        const taxWithDecote = tax - decote;
+        const { tax, taxAfterDecote, taxBreakdown, decote } = calculateIR(
+          income,
+          familyQuotient
+        );
 
         return {
           tax,
-          taxWithDecote,
+          taxAfterDecote,
           taxBreakdown,
           decote,
         };
@@ -168,7 +169,7 @@
           document.getElementById("familyQuotient").value
         );
 
-        const { tax, taxWithDecote, taxBreakdown, decote } = calculateTax(
+        const { tax, taxAfterDecote, taxBreakdown, decote } = calculateTax(
           income,
           familyQuotient
         );
@@ -190,7 +191,7 @@
             0
           )} €<br /><strong>Décôte :</strong> ${decote.toFixed(
           0
-        )} €<br /><strong>Total :</strong> ${taxWithDecote.toFixed(0)} €
+        )} €<br /><strong>Total :</strong> ${taxAfterDecote.toFixed(0)} €
         `;
 
         // Show the breakdown container

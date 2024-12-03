@@ -3,7 +3,7 @@ const DECOTE_APPLICATION_THRESHOLD = [1929, 3191]; // The threshold for applying
 const DECOTE_MAX = [873, 1444]; // The max decote amount for 1 and 2 parts
 const DECOTE_PERCENTAGE = 0.4525; // The percentage of the decote
 
-function calculteDecote(tax, familyQuotient = 1) {
+function calculateDecote(tax, familyQuotient = 1) {
   const decoteThreshold =
     familyQuotient == 1
       ? DECOTE_APPLICATION_THRESHOLD[0]
@@ -55,8 +55,10 @@ function calculateIR(profit, familyQuotient = 1) {
   }
 
   tax = tax * familyQuotient;
+  let decote = calculateDecote(tax, familyQuotient);
+  let taxAfterDecote = Math.max(0, tax - decote);
 
-  return { tax, taxBreakdown };
+  return { tax, taxAfterDecote, taxBreakdown, decote };
 }
 
 // =====================================================================================================================
@@ -99,3 +101,5 @@ const EURL_MINIMUM_SOCIAL_CONTRIBUTION = 93 + 931 + 69 + 134;
 
 // https://www.economie.gouv.fr/particuliers/prelevement-forfaitaire-unique-pfu
 const PFU_RATE = 0.3;
+const PFU_IR_RATE = 0.128;
+const PFU_PS_RATE = 0.172;
