@@ -162,11 +162,19 @@
           },
           {
             key: "Taux de cotisation sociale pour les EURL",
-            value: EURL_SOCIAL_CONTRIBUTION_RATE * 100 + " %",
+            value:
+              (
+                calculateSocialContributionsForTNS(100000).contributionsRate *
+                100
+              ).toFixed(2) + " %",
           },
           {
             key: "Taux de cotisation sociale pour les SASU",
-            value: SASU_SOCIAL_CONTRIBUTION_RATE * 100 + " %",
+            value:
+              (
+                calculateSocialContributionForAssimilatedEmployee(100000)
+                  .totalContributionsRate * 100
+              ).toFixed(2) + " %",
           },
           {
             key: "Taux du prélèvement forfaitaire unique (PFU)",

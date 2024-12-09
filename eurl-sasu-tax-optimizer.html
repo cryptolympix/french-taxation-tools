@@ -164,8 +164,7 @@
         "eurl_ir",
         "eurl_is_pfu",
         "eurl_is_ir",
-        "sasu_ir_ir",
-        "sasu_ir_pfu",
+        "sasu_ir",
         "sasu_is_ir",
         "sasu_is_pfu",
       ];
@@ -178,8 +177,7 @@
         taxOption,
         salary,
         dividends,
-        dividendsTaxOption,
-        socialContributionRate
+        dividendsTaxOption
       ) {
         const netProfit = revenue - expenses;
         let socialTax = 0; // Charges sociales
@@ -187,40 +185,34 @@
         let incomeTax = 0; // Impôt sur le revenu
         let dividendsTax = 0; // Impôt sur les dividendes
 
-        if (taxOption === "ir") {
-          socialTax += salary * socialContributionRate;
-          if (dividends > socialCapital * 0.1) {
-            let taxableDividends = dividends - socialCapital * 0.1;
-            socialTax += taxableDividends * socialContributionRate;
+        if (businessType === "eurl") {
+          if (taxOption === "ir") {
+            incomeTax += calculateIR(netProfit).taxAfterDecote;
+          } else {
+            socialTax +=
+              calculateSocialContributionsForTNS(salary).contributions;
+            profitTax = calculateIS(netProfit - salary);
+            incomeTax = calculateIR(salary).taxAfterDecote;
           }
         } else {
-          socialTax += salary * socialContributionRate;
+          if (taxOption === "is") {
+            socialTax +=
+              calculateSocialContributionForAssimilatedEmployee(
+                salary
+              ).totalContributions;
+            profitTax = calculateIS(netProfit);
+            incomeTax = calculateIR(salary).taxAfterDecote;
+          } else {
+            incomeTax = calculateIR(netProfit).taxAfterDecote;
+          }
         }
 
-        // Minimum social contribution for TNS
-        if (businessType === "eurl") {
-          socialTax = Math.max(socialTax, EURL_MINIMUM_SOCIAL_CONTRIBUTION);
-        }
-
-        if (taxOption === "ir") {
-          profitTax = 0;
-        } else {
-          profitTax = calculateIS(netProfit - salary - socialTax);
-        }
-
-        incomeTax =
-          taxOption === "ir"
-            ? calculateIR(netProfit - socialTax).taxAfterDecote
-            : calculateIR(salary).taxAfterDecote;
-
-        if (taxOption === "is") {
+        if (dividends > 0 && taxOption !== "ir") {
           if (dividendsTaxOption === "pfu") {
             dividendsTax = dividends * PFU_RATE;
           } else {
             dividendsTax = calculateIR(dividends).taxAfterDecote;
           }
-        } else {
-          dividendsTax = calculateIR(dividends).taxAfterDecote;
         }
 
         return {
@@ -272,18 +264,10 @@
         for (let type of selectedTypes) {
           const [businessType, taxOption, dividendsTaxOption] = type.split("_");
 
-          const socialContributionRate =
-            businessType === "sasu"
-              ? SASU_SOCIAL_CONTRIBUTION_RATE
-              : EURL_SOCIAL_CONTRIBUTION_RATE;
-
-          const maximumSalary =
-            (revenue - expenses) / (1 + socialContributionRate);
-
           let data = [];
           for (
             let salary = 0;
-            salary < maximumSalary;
+            salary < revenue;
             salary += revenue / resolution
           ) {
             for (
@@ -300,8 +284,7 @@
                   taxOption,
                   salary,
                   dividends,
-                  dividendsTaxOption,
-                  socialContributionRate
+                  dividendsTaxOption
                 );
 
               // Calculate results
