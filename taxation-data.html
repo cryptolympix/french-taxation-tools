@@ -161,7 +161,7 @@
             value: IS_STANDARD_TAX_RATE * 100 + " %",
           },
           {
-            key: "Taux de cotisation sociale pour les EURL",
+            key: "Taux de cotisation sociale pour les Travailleurs Non Salariés (TNS)",
             value:
               (
                 calculateSocialContributionsForTNS(100000).contributionsRate *
@@ -169,10 +169,10 @@
               ).toFixed(2) + " %",
           },
           {
-            key: "Taux de cotisation sociale pour les SASU",
+            key: "Taux de cotisation sociale pour les Assimilés Salariés",
             value:
               (
-                calculateSocialContributionForAssimilatedEmployee(100000)
+                calculateSocialContributionsForAssimilatedEmployee(100000)
                   .totalContributionsRate * 100
               ).toFixed(2) + " %",
           },
