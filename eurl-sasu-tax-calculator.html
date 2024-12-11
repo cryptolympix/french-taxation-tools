@@ -234,7 +234,7 @@
         } else {
           if (taxOption === "is") {
             socialTax +=
-              calculateSocialContributionsForAssimilatedEmployee(
+              calculateSocialContributionsForAssimilatedEmployeeFromNetIncome(
                 salary
               ).totalContributions;
             profitTax = calculateIS(netProfit);
@@ -246,7 +246,7 @@
 
         if (dividends > 0 && taxOption !== "ir") {
           if (dividendsTaxOption === "pfu") {
-            dividendsTax = dividends * PFU_RATE;
+            dividendsTax = calculatePFU(dividends).totalPFU;
           } else {
             dividendsTax = calculateIR(dividends).taxAfterDecote;
           }

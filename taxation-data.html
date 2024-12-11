@@ -172,8 +172,9 @@
             key: "Taux de cotisation sociale pour les Assimilés Salariés",
             value:
               (
-                calculateSocialContributionsForAssimilatedEmployee(100000)
-                  .totalContributionsRate * 100
+                calculateSocialContributionsForAssimilatedEmployeeFromNetIncome(
+                  100000
+                ).totalContributionsRate * 100
               ).toFixed(2) + " %",
           },
           {
