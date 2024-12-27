@@ -89,8 +89,11 @@
 
         <table id="company-constant"></table>
 
-        <h3>Taux d'imposition sur les sociétés</h3>
+        <h3>Taux d'imposition sur les sociétés (IS)</h3>
         <table id="is-tax-rates"></table>
+
+        <h3>Prélèvement Forfaitaire Unique (PFU)</h3>
+        <table id="pfu-rates"></table>
       </div>
 
       <div class="constant-section" id="income-tax-section">
@@ -98,7 +101,7 @@
 
         <table id="personal-constant"></table>
 
-        <h3>Barème de l'impôt sur le revenu</h3>
+        <h3>Barème de l'impôt sur le revenu (IR)</h3>
         <table id="ir-tax-rates"></table>
       </div>
     </div>
@@ -143,6 +146,7 @@
         const companyConstantTable =
           document.getElementById("company-constant");
         const isTaxRatesTable = document.getElementById("is-tax-rates");
+        const pfuRatesTable = document.getElementById("pfu-rates");
         const personalConstantTable =
           document.getElementById("personal-constant");
         const irTaxRatesTable = document.getElementById("ir-tax-rates");
@@ -151,14 +155,6 @@
           {
             key: "Seuil de chiffre d'affaires pour les PME",
             value: PME_REVENUE_THRESHOLD + " €",
-          },
-          {
-            key: "Taux réduit de l'IS",
-            value: IS_REDUCED_TAX_RATE * 100 + " %",
-          },
-          {
-            key: "Taux standard de l'IS",
-            value: IS_STANDARD_TAX_RATE * 100 + " %",
           },
           {
             key: "Taux de cotisation sociale pour les Travailleurs Non Salariés (TNS)",
@@ -177,10 +173,6 @@
                 ).totalContributionsRate * 100
               ).toFixed(2) + " %",
           },
-          {
-            key: "Taux du prélèvement forfaitaire unique (PFU)",
-            value: PFU_RATE * 100 + " %",
-          },
         ]);
 
         generateTable(
@@ -193,6 +185,15 @@
                 ? "Supérieur à " + rate.min + " €"
                 : "De " + rate.min + " € à " + rate.max + " €",
             taux: rate.rate * 100 + " %",
+          })),
+          true
+        );
+
+        generateTable(
+          pfuRatesTable,
+          PFU_RATE.map((rate) => ({
+            type: rate.key,
+            taux: rate.value * 100 + " %",
           })),
           true
         );
